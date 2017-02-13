@@ -105,7 +105,7 @@ sub disco_format {
 sub disco_show
 {
     my ($self, %options) = @_;
-    $self->prepare();
+    $self->prepare(%options);
     foreach my $instance (@{$self->{result}}) {
         $self->{output}->add_disco_entry(
             name    => $instance->{name},
