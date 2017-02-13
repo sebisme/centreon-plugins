@@ -54,18 +54,20 @@ sub new
                 unit => 'Bytes',
                 perfdata => 'disk_read',
                 value_format => '%d',
+                value_unit => 'o',
                 threshold_format => '%s',
-                short_msg => 'Disk read : %d bytes',
-                long_msg => 'Disk read : %d bytes'
+                short_msg => 'Disk read : %d octets',
+                long_msg => 'Disk read : %d octets'
             },
             {
                 name => 'DiskWriteBytes',
                 unit => 'Bytes',
                 perfdata => 'disk_write',
                 value_format => '%d',
+                value_unit => 'o',
                 threshold_format => '%s',
-                short_msg => 'Disk write : %d bytes',
-                long_msg => 'Disk write : %d bytes'
+                short_msg => 'Disk write : %d octets',
+                long_msg => 'Disk write : %d octets'
             }
         ]
     };

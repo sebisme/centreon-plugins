@@ -54,18 +54,20 @@ sub new
                 unit => 'Bytes',
                 perfdata => 'traffic_in',
                 value_format => '%.2f',
+                value_unit => 'o',
                 threshold_format => '%s',
-                short_msg => 'Traffic in : %.2f bytes',
-                long_msg => 'Traffic in : %.2f bytes'
+                short_msg => 'Traffic in : %.2f octets',
+                long_msg => 'Traffic in : %.2f octets'
             },
             {
                 name => 'NetworkOut',
                 unit => 'Bytes',
                 perfdata => 'traffic_out',
                 value_format => '%.2f',
+                value_unit => 'o',
                 threshold_format => '%s',
-                short_msg => 'Traffic out : %.2f bytes',
-                long_msg => 'Traffic out : %.2f bytes'
+                short_msg => 'Traffic out : %.2f octets',
+                long_msg => 'Traffic out : %.2f octets'
             }
         ]
     };
