@@ -118,6 +118,8 @@ sub get_metrics {
     my @return;
 
     my $metricResult;
+    my $hasValue = 0;
+
     foreach my $metric (@{$options{metrics}}) {
         my $value = undef;
         my $exit_code = 'ok';
@@ -136,9 +138,13 @@ sub get_metrics {
             Period => 300,
             Unit => $metric->{unit},
             Dimensions => [
-                { Name => 'InstanceId', Value => $options{instance} }
+                {
+                    Name => $options{dimension_key},
+                    Value => $options{dimension_value}
+                }
             ]
         );
+
         my $min = $metric->{min};
         my $max = $metric->{max};
         foreach my $datapoint (@{$metricResult->{Datapoints}}) {
@@ -149,6 +155,7 @@ sub get_metrics {
             }
         }
         if (defined $value) {
+            $hasValue = 1;
             if ($metric->{threshold_format}) {
               $self->{output}->perfdata_add(
                   label => $metric->{perfdata},
@@ -183,7 +190,12 @@ sub get_metrics {
         }
     }
 
-
+    if (!$hasValue) {
+      $self->{output}->output_add(
+          severity => 'unknown',
+          short_msg => 'No metrics found for the period'
+      );
+    }
 
     $self->{output}->display();
     $self->{output}->exit();

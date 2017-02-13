@@ -131,7 +131,8 @@ sub run
     my ($self, %options) = @_;
 
     my %infos = %{$self->{cw_metrics}};
-    $infos{instance} = $self->{option_results}{ec2_instance};
+    $infos{dimension_key} = 'InstanceId';
+    $infos{dimension_value} = $self->{option_results}{ec2_instance};
 
     $options{custom}->set_perfdata($self->{perfdata});
 
