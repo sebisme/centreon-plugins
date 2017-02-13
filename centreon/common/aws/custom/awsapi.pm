@@ -128,21 +128,43 @@ sub get_metrics {
           $statistics = ['Average', 'Minimum', 'Maximum'];
         }
 
+        my $start_time = DateTime->now->subtract( minutes => 10 )->iso8601;
+        my $period = 300;
+        if ($metric->{period} && $metric->{period} eq 'day') {
+          $start_time = DateTime->now->subtract( days => 1 )->iso8601;
+          $period = 3600;
+        }  elsif ($metric->{period} && $metric->{period} eq 'week') {
+          $start_time = DateTime->now->subtract( weeks => 1 )->iso8601;
+          $period = 3600 * 24;
+        } elsif ($metric->{period} && $metric->{period} eq 'month') {
+          $start_time = DateTime->now->subtract( months => 1 )->iso8601;
+          $period = 3600 * 24 * 7;
+        }
+
+        my @dimensions = (
+            {
+                Name => $options{dimension_key},
+                Value => $options{dimension_value}
+            }
+        );
+
+        if ($options{extra_dimensions}) {
+            while (my ($key, $value) = each($options{extra_dimensions})) {
+              my %dim = ( Name => $key, Value => $value );
+              push @dimensions, { Name => $key, Value => $value };
+            }
+        }
+
         $metricResult = $self->{aws_service}->GetMetricStatistics(
             MetricName => $metric->{name},
             Namespace => $options{namespace},
             Statistics => $statistics,
             ExtendedStatistics => ['p100'],
             EndTime => DateTime->now->iso8601,
-            StartTime => DateTime->now->subtract( minutes => 10 )->iso8601,
-            Period => 300,
+            StartTime => $start_time,
+            Period => $period,
             Unit => $metric->{unit},
-            Dimensions => [
-                {
-                    Name => $options{dimension_key},
-                    Value => $options{dimension_value}
-                }
-            ]
+            Dimensions => \@dimensions
         );
 
         my $min = $metric->{min};
@@ -163,7 +185,8 @@ sub get_metrics {
                   warning => $self->{perfdata}->get_perfdata_for_output(label => 'warning'),
                   critical => $self->{perfdata}->get_perfdata_for_output(label => 'critical'),
                   min => $min,
-                  max => $max
+                  max => $max,
+                  unit => $metric->{value_unit}
               );
               $exit_code = $self->{perfdata}->threshold_check(
                   value     => $value,
@@ -177,7 +200,8 @@ sub get_metrics {
                     label => $metric->{perfdata},
                     value => $value,
                     min => $min,
-                    max => $max
+                    max => $max,
+                    unit => $metric->{value_unit}
                 );
             }
             $self->{output}->output_add(
