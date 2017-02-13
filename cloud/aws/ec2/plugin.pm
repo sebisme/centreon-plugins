@@ -18,30 +18,37 @@
 # limitations under the License.
 #
 
-package cloud::aws::plugin;
+package cloud::aws::ec2::plugin;
 
 use strict;
 use warnings;
 use base qw(centreon::plugins::script_custom);
 
-sub new {
-    my ( $class, %options ) = @_;
+sub new
+{
+    my ($class, %options) = @_;
     my $self = $class->SUPER::new( package => __PACKAGE__, %options );
     bless $self, $class;
 
-    $self->{version} = '0.1';
-    %{ $self->{modes} } = (
-        'instancestate' => 'cloud::aws::mode::instancestate',
-        'list'          => 'cloud::aws::mode::list',
-        'cloudwatch'    => 'cloud::aws::mode::cloudwatch',
+    $self->{version} = '0.2';
+    %{$self->{modes}} = (
+        'list' => 'cloud::aws::ec2::mode::list',
+        'cpu-credit' => 'cloud::aws::ec2::mode::cpu_credit',
+        'cpu' => 'cloud::aws::ec2::mode::cpu',
+        'traffic' => 'cloud::aws::ec2::mode::traffic',
+        'network_packets' => 'cloud::aws::ec2::mode::network_packets',
+        'disk_io' => 'cloud::aws::ec2::mode::disk_io',
+        'disk_ops' => 'cloud::aws::ec2::mode::disk_ops'
     );
 
-    $self->{custom_modes}{awscli} = 'cloud::aws::custom::awscli';
+    $self->{custom_modes}{awsapi} = 'centreon::common::aws::custom::awsapi';
+
     return $self;
 }
 
-sub init {
-    my ( $self, %options ) = @_;
+sub init
+{
+    my ($self, %options) = @_;
 
     $self->SUPER::init(%options);
 }
@@ -56,10 +63,7 @@ Check Amazon AWS cloud.
 
 =over 8
 
-For this plugin to work, you have to install and configure:
-awscli (http://docs.aws.amazon.com/cli/latest/userguide/installing.html#install-bundle-other-os).
-perl-json
-perl-Module-Load
+For this plugins you need the perl module Paws >= 0.30.
 
 =back
 
