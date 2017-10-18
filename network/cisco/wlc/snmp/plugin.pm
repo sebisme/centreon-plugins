@@ -35,6 +35,7 @@ sub new {
                          'ap-channel-noise'         => 'centreon::common::airespace::snmp::mode::apchannelnoise',
                          'ap-status'                => 'centreon::common::airespace::snmp::mode::apstatus',
                          'ap-users'                 => 'centreon::common::airespace::snmp::mode::apusers',
+                         'ap-list'                  => 'centreon::common::airespace::snmp::mode::aplist',
                          'cpu'                      => 'centreon::common::airespace::snmp::mode::cpu',
                          'hardware'         => 'centreon::common::airespace::snmp::mode::hardware',
                          'interfaces'       => 'snmp_standard::mode::interfaces', 
