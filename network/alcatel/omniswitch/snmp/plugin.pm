@@ -38,6 +38,7 @@ sub new {
                         'flash-memory'      => 'network::alcatel::omniswitch::snmp::mode::flashmemory',
                         'memory'            => 'network::alcatel::omniswitch::snmp::mode::memory',
                         'spanning-tree'     => 'snmp_standard::mode::spanningtree',
+                        'transceiver-ddm'   => 'network::alcatel::omniswitch::snmp::mode::transceiverddm.pm',
                         );
 
     return $self;

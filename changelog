@@ -1,3 +1,6 @@
+2017-10-24 Sebastien Beuken <sbeuken@gmail.com>
+ * Mode added: [alcatel omniswitch] 'transceiver-ddm'
+ 
 2017-10-13 Quentin Garnier <qgarnier@centreon.com>
  * Plugin added: Kaminario Rest API
  * Plugin added: Protocol SSH
