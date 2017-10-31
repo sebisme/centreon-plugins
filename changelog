@@ -1,4 +1,12 @@
-2017-10-24 Sebastien Beuken <sbeuken@gmail.com>
+2017-10-24 Sebastien Beuken <sbeuken@shinka.be>
+ * Plugin added: Socomec Netvision 
+ * Mode added: [socomec netvision] 'alarms'
+ * Mode added: [socomec netvision] 'battery-status'
+ * Mode added: [socomec netvision] 'input-lines'
+ * Mode added: [socomec netvision] 'output-lines'
+ * Mode added: [socomec netvision] 'output-source'
+
+2017-10-24 Sebastien Beuken <sbeuken@shinka.be>
  * Mode added: [alcatel omniswitch] 'transceiver-ddm'
  
 2017-10-13 Quentin Garnier <qgarnier@centreon.com>
