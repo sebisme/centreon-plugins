@@ -1,6 +1,4 @@
 #
-# Copyright 2017 Centreon (http://www.centreon.com/)
-#
 # Centreon is a full-fledged industry-strength solution that meets
 # the needs in IT infrastructure and application monitoring for
 # service performance.
@@ -18,7 +16,9 @@
 # limitations under the License.
 #
 
-package network::alcatel::omniswitch::snmp::plugin;
+package hardware::ups::socomec::netvision::snmp::plugin;
+
+use Data::Dumper;
 
 use strict;
 use warnings;
@@ -28,18 +28,15 @@ sub new {
     my ($class, %options) = @_;
     my $self = $class->SUPER::new(package => __PACKAGE__, %options);
     bless $self, $class;
-
+    
     $self->{version} = '0.1';
     %{$self->{modes}} = (
-                        'cpu'               => 'network::alcatel::omniswitch::snmp::mode::cpu',
-                        'hardware'          => 'network::alcatel::omniswitch::snmp::mode::hardware',
-                        'interfaces'        => 'snmp_standard::mode::interfaces', 
-                        'list-interfaces'   => 'snmp_standard::mode::listinterfaces',
-                        'flash-memory'      => 'network::alcatel::omniswitch::snmp::mode::flashmemory',
-                        'memory'            => 'network::alcatel::omniswitch::snmp::mode::memory',
-                        'spanning-tree'     => 'snmp_standard::mode::spanningtree',
-                        'transceiver-ddm'   => 'network::alcatel::omniswitch::snmp::mode::transceiverddm',
-                        );
+                         'battery-status'   => 'hardware::ups::socomec::netvision::snmp::mode::batterystatus',
+                         'input-lines'      => 'hardware::ups::socomec::netvision::snmp::mode::inputlines',
+                         'output-lines'     => 'hardware::ups::socomec::netvision::snmp::mode::outputlines',
+                         'output-source'     => 'hardware::ups::socomec::netvision::snmp::mode::outputsource',
+                         'alarms'           => 'hardware::ups::socomec::netvision::snmp::mode::alarms',
+                         );
 
     return $self;
 }
@@ -50,6 +47,6 @@ __END__
 
 =head1 PLUGIN DESCRIPTION
 
-Check Alcatel Omniswitch in SNMP.
+Check UPS Socomec Netvision through SNMP (SOCOMECUPS-MIB)
 
 =cut
