@@ -32,8 +32,10 @@ sub new {
     $self->{version} = '0.1';
     %{$self->{modes}} = (
                          'battery-status'   => 'hardware::ups::socomec::netvision::snmp::mode::batterystatus',
+                         'input-lines'      => 'hardware::ups::socomec::netvision::snmp::mode::inputlines',
                          'output-lines'     => 'hardware::ups::socomec::netvision::snmp::mode::outputlines',
-                         # 'sensors'          => 'hardware::ups::socomec::netvison::snmp::mode::sensors',
+                         'output-source'     => 'hardware::ups::socomec::netvision::snmp::mode::outputsource',
+                         'alarms'           => 'hardware::ups::socomec::netvision::snmp::mode::alarms',
                          );
 
     return $self;

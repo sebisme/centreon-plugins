@@ -80,7 +80,7 @@ sub run {
     my $voltage = (defined($result->{$oid_upsBatteryVoltage}) && $result->{$oid_upsBatteryVoltage} =~ /\d/ && $result->{$oid_upsBatteryVoltage} > 0) ? 
         $result->{$oid_upsBatteryVoltage} * 0.1 : 0;
     my $temp = defined($result->{$oid_upsBatteryTemperature}) ? $result->{$oid_upsBatteryTemperature} : 0;
-    my $min_remain = (defined($result->{$oid_upsEstimatedMinutesRemaining}) && $result->{$oid_upsEstimatedMinutesRemaining} =~ /\d/) ? 
+    my $min_remain = (defined($result->{$oid_upsEstimatedMinutesRemaining}) && ($result->{$oid_upsEstimatedMinutesRemaining} =~ /\d/) && ($result->{$oid_upsEstimatedMinutesRemaining} > 0)) ? 
         $result->{$oid_upsEstimatedMinutesRemaining} : 'unknown';
     my $charge_remain = (defined($result->{$oid_upsEstimatedChargeRemaining}) && $result->{$oid_upsEstimatedChargeRemaining} =~ /\d/) ? 
         $result->{$oid_upsEstimatedChargeRemaining} : 'unknown';

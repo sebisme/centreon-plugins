@@ -18,9 +18,11 @@
 # limitations under the License.
 #
 
-package hardware::ups::standard::rfc1628::snmp::mode::outputlines;
+package hardware::ups::socomec::netvision::snmp::mode::outputlines;
 
 use base qw(centreon::plugins::mode);
+
+use Data::Dumper;
 
 use strict;
 use warnings;
@@ -29,7 +31,6 @@ my %oids = (
     '.1.3.6.1.4.1.4555.1.1.1.1.4.4.1.4' => { counter => 'load', no_present => -1 }, # upsOutputPercentLoad
     '.1.3.6.1.4.1.4555.1.1.1.1.4.4.1.2' => { counter => 'voltage', no_present => 0 }, # in Volt upsOutputVoltage
     '.1.3.6.1.4.1.4555.1.1.1.1.4.4.1.3' => { counter => 'current', no_present => 0 }, # in dA upsOutputCurrent
-    # '.1.3.6.1.2.1.33.1.4.4.1.4' => { counter => 'power', no_present => 0 }, # in Watt upsOutputPower
 );
 
 my $maps_counters = {
@@ -45,7 +46,7 @@ my $maps_counters = {
                                 critical_voltage =>  { label => 'critical-voltage', exit_value => 'critical' },
                                 },
                  output_msg => 'Voltage : %.2f V', no_present => 0,
-                 factor => 1, unit => 'V',
+                 factor => 0.1, unit => 'V',
                 },
     current => { thresholds => {
                                 warning_current    =>  { label => 'warning-current', exit_value => 'warning' },
@@ -54,13 +55,6 @@ my $maps_counters = {
                  output_msg => 'Current : %.2f A', no_present => 0,
                  factor => 0.1, unit => 'A',
                },
-    power   => { thresholds => {
-                                warning_power  =>  { label => 'warning-power', exit_value => 'warning' },
-                                critical_power  =>  { label => 'critical-power', exit_value => 'critical' },
-                               },
-                 output_msg => 'Power : %.2f W', no_present => 0,
-                 factor => 1, unit => 'W',
-                },
 };
 
 sub new {
@@ -167,7 +161,7 @@ sub run {
     my ($self, %options) = @_;
     $self->{snmp} = $options{snmp};
     
-    my $oid_upsOutputEntry = '.1.3.6.1.2.1.33.1.4.4.1';
+    my $oid_upsOutputEntry = '.1.3.6.1.4.1.4555.1.1.1.1.4.4.1';
     my $result = $self->{snmp}->get_table(oid => $oid_upsOutputEntry, nothing_quit => 1);
     foreach my $key ($self->{snmp}->oid_lex_sort(keys %$result)) {
         $self->build_values(current => $key, result => $result);
@@ -234,12 +228,12 @@ Check Output lines metrics (load, voltage, current and true power).
 =item B<--warning-*>
 
 Threshold warning.
-Can be: 'load', 'voltage', 'current', 'power'.
+Can be: 'load', 'voltage', 'current'.
 
 =item B<--critical-*>
 
 Threshold critical.
-Can be: 'load', 'voltage', 'current', 'power'.
+Can be: 'load', 'voltage', 'current'.
 
 =item B<--warning-stdev-3phases>
 
