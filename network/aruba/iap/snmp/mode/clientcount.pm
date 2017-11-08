@@ -17,12 +17,14 @@
 # limitations under the License.
 #
 
-package network::aruba::iap::mode::clientcount;
+package network::aruba::iap::snmp::mode::clientcount;
 
 use base qw(centreon::plugins::mode);
 
 use strict;
 use warnings;
+
+use Data::Dumper;
 
 sub new {
     my ($class, %options) = @_;
@@ -32,8 +34,9 @@ sub new {
     $self->{version} = '1.0';
     $options{options}->add_options(arguments =>
                                 {
-                                  "warning:s"               => { name => 'warning', },
-                                  "critical:s"              => { name => 'critical', },
+                                    "filter-name:s"           => { name => 'filter_name' },
+                                    "warning:s"               => { name => 'warning', },
+                                    "critical:s"              => { name => 'critical', },
                                 });
 
     return $self;
@@ -76,6 +79,7 @@ sub run {
                                                             { oid => $oid_aiAPIPAddress },
                                                             { oid => $oid_aiAPName },
                                                             { oid => $oid_aiAPStatus },
+                                                            { oid => $oid_aiClientMACAddress },
                                                             { oid => $oid_aiClientIPAddress },
                                                             { oid => $oid_aiClientAPIPAddress },
                                                             { oid => $oid_aiClientName },
@@ -84,7 +88,7 @@ sub run {
 
     my $ap_count = scalar(keys %{$result->{$oid_aiAPName}});
     $self->{all_aps} = [];
-
+    $self->{excluded_aps} = [];
     foreach my $oid ($self->{snmp}->oid_lex_sort(keys %{$result->{$oid_aiAPStatus}})) {
         $oid =~ /^$oid_aiAPStatus\.(.*)$/;
         my $ap_id = $1;
@@ -93,6 +97,12 @@ sub run {
         my $apstatus = $result->{$oid_aiAPStatus}->{$oid_aiAPStatus.'.'.$ap_id};
         my $apstatustxt = $self->{oid_aiAPStatus_mapping}->{$apstatus};
         my $ap = {name => $apname, instance => $ap_id, status => $apstatustxt, ip => $apip, mac => $self->convert_decimal_to_hexstring(string => $ap_id)};
+        if (defined($self->{option_results}->{filter_name}) && $self->{option_results}->{filter_name} ne '' &&
+            $apname !~ /$self->{option_results}->{filter_name}/) {
+            $self->{output}->output_add('long_msg' => "skipping  '" . $apname . "': no matching filter.", debug => 1);
+            push @{$self->{excluded_aps}}, $ap;
+            next;
+        }
         push @{$self->{all_aps}}, $ap;
     }
 
@@ -104,24 +114,43 @@ sub run {
         my $clientname = $result->{$oid_aiClientName}->{$oid_aiClientName.'.'.$instance};
         my $clientip = $result->{$oid_aiClientIPAddress}->{$oid_aiClientIPAddress.'.'.$instance};
         my $clientapip = $result->{$oid_aiClientAPIPAddress}->{$oid_aiClientAPIPAddress.'.'.$instance};
+        my $clientmac = $self->convert_decimal_to_hexstring(string => $instance);
         my $clientos = $result->{$oid_aiClientOperatingSystem}->{$oid_aiClientOperatingSystem.'.'.$instance};
         my $clientap = $self->get_ap_name_from_ip($clientapip);
-        my $client = {name => $clientname, ip => $clientip, instance => $instance, os => $clientos, ap => $clientap, apip => $clientapip};
+        my $client = {name => $clientname, ip => $clientip, mac => $clientmac, instance => $instance, os => $clientos, ap => $clientap, apip => $clientapip};
         push @{$self->{all_clients}}, $client;
     }
-
+    
+    # print Dumper($self->{all_clients});
     # print Dumper($self->{all_aps});
+    
     my $allccnt;
     foreach my $ap (@{$self->{all_aps}}) {
-        my $apname = $ap->{name};
         my $ccnt = 0;
-        my $apsid = $ap->{mac};
-        $apsid =~ s/[:]//g;
+        
+        my $apname = $ap->{name};
+        my $apmac = $ap->{mac};
+        # $apmac =~ s/[:]//g;
         my $apshortname = lc $ap->{name};
         $apshortname =~ s/[-_\s]//g;
+
         foreach my $client (@{$self->{all_clients}}) {
             next if ($client->{apip} ne $ap->{ip});
-            $self->{output}->output_add('long_msg' => 'Client '.$client->{name}.' is connected on ap '.$ap->{name}.' with IP address '.$client->{ip}.' on '.$client->{os}.' ('.$apsid.')');
+
+            my $clientname = $client->{name};
+            my $clientmac = $client->{mac};
+            # $clientmac =~ s/[:]//g;
+            my $clientshortname = lc $client->{name};
+            $clientshortname =~ s/[-_\s]//g;
+            
+            $self->{output}->output_add('long_msg' => sprintf("Client %s is connected on ap '%s' (%s) with IP address %s on %s (%s).",
+                                                        $clientname ne '' ? $clientname : 'with unknown name',
+                                                        $apname ne '' ? $apname : 'unknown',
+                                                        $apmac,
+                                                        $client->{ip},
+                                                        $client->{os} ne '' ? $client->{os} : 'unknown system',
+                                                        $clientmac
+                                                    ));
             $ccnt++;
             $allccnt++;
         }

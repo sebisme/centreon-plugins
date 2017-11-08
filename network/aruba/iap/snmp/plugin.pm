@@ -17,7 +17,7 @@
 # limitations under the License.
 # 
 
-package network::aruba::iap::plugin;
+package network::aruba::iap::snmp::plugin;
 
 use strict;
 use warnings;
@@ -31,9 +31,10 @@ sub new {
 
     $self->{version} = '1.0';
     %{$self->{modes}} = (
-                          'ap-count'         => 'network::aruba::iap::mode::apcount',
-                          'client-count'     => 'network::aruba::iap::mode::clientcount',
-                          'network-count'    => 'network::aruba::iap::mode::networkcount',
+                          'ap-status'        => 'network::aruba::iap::snmp::mode::apstatus',
+                          'ap-list'          => 'network::aruba::iap::snmp::mode::aplist',
+                          'client-count'     => 'network::aruba::iap::snmp::mode::clientcount',
+                          'network-count'    => 'network::aruba::iap::snmp::mode::networkcount',
                         );
 
     return $self;

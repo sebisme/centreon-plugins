@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-package network::aruba::iap::mode::apcount;
+package network::aruba::iap::snmp::mode::apstatus;
 
 use base qw(centreon::plugins::mode);
 
@@ -32,6 +32,7 @@ sub new {
     $self->{version} = '1.0';
     $options{options}->add_options(arguments =>
                                 {
+                                    "filter-name:s"           => { name => 'filter_name' },
                                     "warning:s"               => { name => 'warning', },
                                     "critical:s"              => { name => 'critical', },
                                 });
@@ -80,7 +81,38 @@ sub run {
                                                             { oid => $oid_aiAPStatus },
                                                         ], nothing_quit => 1);
 
-    my $ap_count = scalar(keys %{$result->{$oid_aiAPName}});
+    my $ap_total_count = scalar(keys %{$result->{$oid_aiAPName}});
+    
+    my $ap_count = 0;
+    my $up_iaps = 0;
+    my $down_iaps = 0;
+    my $down_iaps_name = '';
+    foreach my $oid ($self->{snmp}->oid_lex_sort(keys %{$result->{$oid_aiAPStatus}})) {
+        $oid =~ /^$oid_aiAPStatus\.(.*)$/;
+        my $ap_id = $1;
+        my $apname = $result->{$oid_aiAPName}->{$oid_aiAPName.'.'.$ap_id};
+        if (defined($self->{option_results}->{filter_name}) && $self->{option_results}->{filter_name} ne '' &&
+            $apname !~ /$self->{option_results}->{filter_name}/) {
+            $self->{output}->output_add('long_msg' => "skipping  '" . $apname . "': no matching filter.", debug => 1);
+            next;
+        }
+        my $apmac = $self->convert_decimal_to_hexstring(string => $ap_id);
+        my $apip = $result->{$oid_aiAPIPAddress}->{$oid_aiAPIPAddress.'.'.$ap_id};
+        my $apserial = $result->{$oid_aiAPSerialNum}->{$oid_aiAPSerialNum.'.'.$ap_id};
+        my $apstatus = $result->{$oid_aiAPStatus}->{$oid_aiAPStatus.'.'.$ap_id};
+        $ap_count++;
+        if ($apstatus eq 2) { $down_iaps++; }
+        if ($apstatus eq 1) { $up_iaps++; }
+        
+        my $apstatustxt = $self->{oid_aiAPStatus_mapping}->{$apstatus};
+        $self->{output}->output_add('long_msg' => sprintf('%s is %s. IP address %s - MAC address %s - Serial number : %s',
+                                                    $apname,
+                                                    $apstatustxt,
+                                                    $apip,
+                                                    $apmac,
+                                                    $apserial
+                                                ));
+    }
     my $exit = $self->{perfdata}->threshold_check(value => $ap_count,
                                                   threshold => [
                                                     { label => 'critical', exit_litteral => 'critical' },
@@ -95,22 +127,6 @@ sub run {
                                   critical => $self->{perfdata}->get_perfdata_for_output(label => 'critical'),
                                   min => 0,
                                   max => undef);
-    my $up_iaps = 0;
-    my $down_iaps = 0;
-    my $down_iaps_name = '';
-    foreach my $oid ($self->{snmp}->oid_lex_sort(keys %{$result->{$oid_aiAPStatus}})) {
-        $oid =~ /^$oid_aiAPStatus\.(.*)$/;
-        my $ap_id = $1;
-        my $apname = $result->{$oid_aiAPName}->{$oid_aiAPName.'.'.$ap_id};
-        my $apmac = $self->convert_decimal_to_hexstring(string => $ap_id);
-        my $apip = $result->{$oid_aiAPIPAddress}->{$oid_aiAPIPAddress.'.'.$ap_id};
-        my $apserial = $result->{$oid_aiAPSerialNum}->{$oid_aiAPSerialNum.'.'.$ap_id};
-        my $apstatus = $result->{$oid_aiAPStatus}->{$oid_aiAPStatus.'.'.$ap_id};
-        if ($apstatus eq 2) { $down_iaps++; }
-        if ($apstatus eq 1) { $up_iaps++; }
-        my $apstatustxt = $self->{oid_aiAPStatus_mapping}->{$apstatus};
-        $self->{output}->output_add('long_msg' => $apname.' is '.$apstatustxt.'. IP address '.$apip.' - MAC address '.$apmac.' - Serial number : '.$apserial);
-    }
     if ($ap_count > $up_iaps) {
         $self->{output}->output_add(severity => 'warning', short_msg => $ap_count.' AP found.'.$down_iaps.' IAP down');
     }

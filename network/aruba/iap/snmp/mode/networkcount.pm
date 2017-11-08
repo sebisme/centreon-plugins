@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-package network::aruba::iap::mode::networkcount;
+package network::aruba::iap::snmp::mode::networkcount;
 
 use Data::Dumper;
 use base qw(centreon::plugins::mode);
@@ -33,6 +33,7 @@ sub new {
     $self->{version} = '1.0';
     $options{options}->add_options(arguments =>
                                 {
+                                    "filter-name:s"           => { name => 'filter_name' },
                                     "warning:s"               => { name => 'warning', },
                                     "critical:s"              => { name => 'critical', },
                                 });
@@ -98,7 +99,7 @@ sub run {
         my $ap = {name => $apname, instance => $ap_id, status => $apstatustxt, ip => $apip, mac => $self->convert_decimal_to_hexstring(string => $ap_id)};
         push @{$self->{all_aps}}, $ap;
     }
-    my $client_count = scalar(keys %{$result->{$oid_aiWlanESSID}});
+    my $network_count = scalar(keys %{$result->{$oid_aiWlanESSID}});
     $self->{all_networks} = [];
     foreach my $oid ($self->{snmp}->oid_lex_sort(keys %{$result->{$oid_aiWlanESSID}})) {
         $oid =~ /^$oid_aiWlanESSID\.(.*)\.(.*)$/;
@@ -116,15 +117,16 @@ sub run {
         push @{$self->{all_networks}}, $wlan;
     }
     # TODO : remove print / dumper / exit and format output nicely
-    print Dumper($self->{all_networks});
-    exit();
+    # print Dumper($self->{all_networks});
+    # exit();
     foreach my $ap (@{$self->{all_aps}}) {
         my $apname = $ap->{name};
-        foreach my $client (@{$self->{all_clients}}) {
-            next if ($client->{apip} ne $ap->{ip});
+        foreach my $network (@{$self->{all_networks}}) {
+            #next if ($network->{apmac} ne $ap->{mac});
+            print Dumper($network);
             my $apsid = $ap->{mac};
             $apsid =~ s/[:]//g;
-            $self->{output}->output_add('long_msg' => 'Client '.$client->{name}.' is connected on ap '.$ap->{name}.' with IP address '.$client->{ip}.' on '.$client->{os}.' ('.$apsid.')');
+            $self->{output}->output_add('long_msg' => 'Network '.$network->{essid}.' is broadcasted on ap '.$ap->{name}.' - mac : '.$network->{mac}.'.');
         }
     }
     $self->{output}->display();
