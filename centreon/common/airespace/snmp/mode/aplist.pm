@@ -162,6 +162,8 @@ sub run {
         my $ap_name = $result->{$oid_bsnAPName . '.' . $_};
         my $admin_status = $result->{$oid_bsnAPAdminStatus . '.' . $_};
         my $oper_status = $result->{$oid_bsnAPOperationStatus . '.' . $_};
+        my $type = $ap_type{$result->{$oid_bsnAPType . '.' . $_}};
+        $type = ' - type : "' . $type . '".';
 
         my $statstr = '';
         $statstr = $statstr . ' - admin status is ';
@@ -314,7 +316,8 @@ sub disco_show {
         my $ap_name = $result->{$oid_bsnAPName . '.' . $_};
         my $admin_status = $result->{$oid_bsnAPAdminStatus . '.' . $_};
         my $oper_status = $result->{$oid_bsnAPOperationStatus . '.' . $_};
-        my $ap_type = $self->{ap_type}->{$result->{$oid_bsnAPType . '.' . $_};}
+        my $ap_type_id = $result->{$oid_bsnAPType . '.' . $_};
+        my $ap_type = $ap_type{$ap_type_id};
 
         my ($opstr, $admstr);
         if ($oper_status == 1) { $opstr = 'up'; } else { $opstr = 'down'; }
@@ -324,6 +327,7 @@ sub disco_show {
         $self->{output}->add_disco_entry(name => $ap_name,
                                          operStatus => $opstr,
                                          adminStatus => $admstr,
+                                         type => $ap_type,
                                          %$extra_values);
     }
 }
