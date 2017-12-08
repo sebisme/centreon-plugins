@@ -30,7 +30,7 @@
  * Mode added: [aruba iap] 'ap-count'
  * Mode added: [aruba iap] 'client-count'
  * Mode added: [airespace] 'ap-list'
- 
+
 2017-10-13 Quentin Garnier <qgarnier@centreon.com>
  * Plugin added: Kaminario Rest API
  * Plugin added: Protocol SSH
