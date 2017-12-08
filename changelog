@@ -25,6 +25,12 @@
  * Mode added: [socomec netvision] 'output-source'
  * Mode added: [alcatel omniswitch] 'transceiver-ddm'
 
+2017-10-18 Sebastien Beuken <sbeuken@shinka.be>
+ * Plugin added: Aruba IAP
+ * Mode added: [aruba iap] 'ap-count'
+ * Mode added: [aruba iap] 'client-count'
+ * Mode added: [airespace] 'ap-list'
+ 
 2017-10-13 Quentin Garnier <qgarnier@centreon.com>
  * Plugin added: Kaminario Rest API
  * Plugin added: Protocol SSH
