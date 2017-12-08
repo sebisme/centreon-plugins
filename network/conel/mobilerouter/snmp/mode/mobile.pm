@@ -12,7 +12,15 @@
 #
 package network::conel::mobilerouter::snmp::mode::mobile;
 
-use base qw(centreon::plugins::mode); use Data::Dumper; use strict; use warnings;
+use base qw(centreon::plugins::mode);
+
+use POSIX;
+use centreon::plugins::misc;
+use centreon::plugins::statefile;
+use Time::HiRes qw(time);
+
+use strict;
+use warnings;
 
 sub new {
     my ($class, %options) = @_;
@@ -108,19 +116,30 @@ sub run {
     $technology = $map_mobile_technology{$result->{$oid_mobileTechnology}} if defined $result->{$oid_mobileTechnology};
     my $card = $map_mobile_card{$result->{$oid_mobileCard}};
     my $registration = $map_mobile_registration{$result->{$oid_mobileRegistration}};
-    
+    my $plmn = $result->{$oid_mobilePLMN};
+    my $cell = $result->{$oid_mobileCell};
+
     $self->{output}->output_add(severity => 'OK',
-	                        short_msg => sprintf('Operator \'%s\' - IP Address : %s - %s card - Tech : %s - Registration \'%s\'',
+	                        short_msg => sprintf('Operator \'%s\' - IP Address : %s - %s card - Tech : %s - Registration \'%s\' - PLMN : \'%s\' - Cell : \'%s\'',
 					             $operator,
 						     $ip_address,
 						     $card,
 						     $technology,
-						     $registration));
+						     $registration,
+						     $plmn,
+						     $cell
+					             ));
     $self->{output}->output_add(long_msg => sprintf('Operator (CONEL-MOBILE-MIB::mobileOperator.0) : \'%s\'', $operator));
     $self->{output}->output_add(long_msg => sprintf('IP Address (CONEL-MOBILE-MIB::mobileIPAddress.0) : \'%s\'', $ip_address));
     $self->{output}->output_add(long_msg => sprintf('Technology (CONEL-MOBILE-MIB::mobileTechnology.0) : \'%s\'', $technology));
     $self->{output}->output_add(long_msg => sprintf('Card (CONEL-MOBILE-MIB::mobileCard.0) : \'%s\'', $card));
     $self->{output}->output_add(long_msg => sprintf('Registration (CONEL-MOBILE-MIB::mobileRegistration.0) : \'%s\'', $registration));
+    $self->{output}->output_add(long_msg => sprintf('Registration (CONEL-MOBILE-MIB::mobilePLMN.0) : \'%s\'', $plmn));
+    $self->{output}->output_add(long_msg => sprintf('Registration (CONEL-MOBILE-MIB::mobileCell.0) : \'%s\'', $cell));
+
+    # "Graph" card slor
+    my $mon_cardSlot = ($result->{$oid_mobileCard} + 1);
+    $self->{output}->perfdata_add(label => 'card', unit => 'slt', value => $mon_cardSlot, min => 0);
     
     # Channels
     my $channel = $result->{$oid_mobileChannel};
@@ -194,13 +213,36 @@ sub run {
         $self->{output}->perfdata_add(label => 'signal', unit => 'dB', value => $channel_signal_N5, min => -109, max => -53);
         $self->{output}->output_add(long_msg => sprintf('Channel N5 (CONEL-MOBILE-MIB::mobileChannelN5.0) : \'%s\' - Signal (CONEL-MOBILE-MIB::mobileSignalStrengthN5.0) : %d dB', $channel_N5, $channel_signal_N5));
     }
+    
+    # Uptime
+    my $value = $result->{$oid_mobileUpTime};
+    $value = floor($value / 100);
+    $self->{output}->perfdata_add(label => 'uptime', unit => 's',
+                                  value => $value,
+                                  min => 0);
+    $self->{output}->output_add(severity => 'OK',
+                                short_msg => sprintf("System uptime is: %s",
+                                                     centreon::plugins::misc::change_seconds(value => $value, start => 'd')),
+				long_msg => sprintf("System Uptime (CONEL-MOBILE-MIB::mobileUpTime) : %s",
+				                     centreon::plugins::misc::change_seconds(value => $value)));
+    
+    # Signal Quality
+    my $signal_quality = $result->{$oid_mobileSignalQuality};
+    $self->{output}->perfdata_add(label => 'signal_quality', unit => 'dB', value => $signal_quality);
+    $self->{output}->output_add(severity => 'OK', short_msg => sprintf("Signal quality : %s", $signal_quality),
+	                                          long_msg => sprintf("Signal quality (CONEL-MOBILE-MIB::mobileSignalQuality) : %s dB", $signal_quality));
+
+    # Latency
+    my $latency = $result->{$oid_mobileLatency};
+    $self->{output}->perfdata_add(label => 'latency', unit => 's',
+	                          value => $latency,
+				  min => 0);
+    $self->{output}->output_add(severity => 'OK', short_msg => sprintf("Latency : %s", $latency),
+				long_msg => sprintf("Latency (CONEL-MOBILE-MIB::mobileLatency) : %s", $latency));
 
     
     $self->{output}->display();
-    $self->{output}->exit()
-    # foreach my $oid ($self->{snmp}->oid_lex_sort(keys %{$result->{$oid_mobilePLMN}})) {
-    #    print Dumper($oid);
-    #}
+    $self->{output}->exit();
 }
 
 1;
