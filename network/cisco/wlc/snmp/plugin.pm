@@ -41,6 +41,7 @@ sub new {
                          'interfaces'       => 'snmp_standard::mode::interfaces', 
                          'list-interfaces'  => 'snmp_standard::mode::listinterfaces',
                          'memory'           => 'centreon::common::airespace::snmp::mode::memory',
+                         'ap-limits'        => 'network::cisco::wlc::snmp::mode::aplimits'
                          );
 
     return $self;
