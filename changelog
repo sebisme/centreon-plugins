@@ -78,6 +78,7 @@
  * Plugin added: Zyxel SNMP
  * Add redis support for temporary datas
 
+<<<<<<< HEAD
 2017-10-24 Sebastien Beuken <sbeuken@shinka.be>
  * Plugin added: Socomec Netvision 
  * Mode added: [socomec netvision] 'alarms'
@@ -93,6 +94,11 @@
  * Mode added: [aruba iap] 'ap-count'
  * Mode added: [aruba iap] 'client-count'
 
+=======
+2017-10-24 Sebastien Beuken <sbeuken@gmail.com>
+ * Mode added: [alcatel omniswitch] 'transceiver-ddm'
+
+>>>>>>> ddm-transciever
 2017-10-13 Quentin Garnier <qgarnier@centreon.com>
  * Plugin added: Kaminario Rest API
  * Plugin added: Protocol SSH
